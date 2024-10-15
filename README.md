@@ -94,3 +94,40 @@ Please file feedback and issues over on the [Supabase GitHub org](https://github
 - [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
 - [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
 - [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+
+# Commands
+
+## SQL Editor
+
+```sql
+CREATE TABLE emails (
+    id SERIAL PRIMARY KEY, -- Unique ID for each email
+    subject TEXT NOT NULL, -- Subject of the email
+    sender TEXT NOT NULL, -- Email address of the sender
+    recipient TEXT[] NOT NULL, -- Array of recipients
+    cc TEXT[], -- Optional CC recipients
+    bcc TEXT[], -- Optional BCC recipients
+    body TEXT NOT NULL, -- Full body of the email (raw content)
+    created_at TIMESTAMPTZ DEFAULT NOW() -- Timestamp when the email was sent or received
+);
+
+
+CREATE TABLE email_sections (
+    id SERIAL PRIMARY KEY, -- Unique ID for each section
+    email_id INT NOT NULL REFERENCES emails(id) ON DELETE CASCADE, -- Reference to parent email
+    section_content TEXT NOT NULL, -- Content of the section (chunk)
+    embedding VECTOR(1536), -- Embedding of the section
+    section_order INT, -- Order of the section in the original email
+    created_at TIMESTAMPTZ DEFAULT NOW() -- Timestamp for the section
+);
+
+-- Ensure the pgvector extension is enabled.
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Create an HNSW index on the section embeddings for efficient similarity search.
+CREATE INDEX section_embedding_hnsw_idx
+ON email_sections USING hnsw (embedding);
+
+```
+
+<!-- TODO: ADD INDEX FOR VECTOR SEARCHES -->
